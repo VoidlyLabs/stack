@@ -11,11 +11,11 @@ services:
     volumes:
       - mongo_data:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet -u \"$$MONGO_INITDB_ROOT_USERNAME\" -p \"$$MONGO_INITDB_ROOT_PASSWORD\" --authenticationDatabase admin --eval \"db.adminCommand({ ping: 1 }).ok\" | grep 1"]
+      test: ["CMD-SHELL", "mongosh --quiet -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval \"quit(db.adminCommand('ping').ok ? 0 : 1)\""]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 20s
+      timeout: 10s
+      retries: 18
+      start_period: 60s
 
   core:
     build:
