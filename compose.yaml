@@ -45,6 +45,7 @@ services:
       LOCAL_STORAGE_BASE_URL: ${PUBLIC_CORE_URL}
       INITIAL_USER_USERNAME: ${INITIAL_USER_USERNAME}
       INITIAL_USER_PASSWORD: ${INITIAL_USER_PASSWORD}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
     volumes:
       - core_uploads:/app/storage/uploads
     healthcheck:
