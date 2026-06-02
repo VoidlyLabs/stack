@@ -38,14 +38,17 @@ ensure_env() {
     server_secret=$(secret)
     client_secret=$(secret)
     tmp_file=$(mktemp)
+    initial_password=$(secret)
     if ! awk \
       -v mongo_secret="$mongo_secret" \
       -v server_secret="$server_secret" \
       -v client_secret="$client_secret" \
+      -v initial_password="$initial_password" \
       '{
         gsub("change-me-mongo-password", mongo_secret);
         gsub("change-me-server-jwt-secret", server_secret);
         gsub("change-me-client-jwt-secret", client_secret);
+        gsub("change-me-initial-password", initial_password);
         print;
       }' .env > "$tmp_file"; then
       echo "Error: Failed to generate .env file"
