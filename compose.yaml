@@ -61,6 +61,7 @@ services:
       dockerfile: ${ADMIN_DOCKERFILE}
       args:
         NEXT_PUBLIC_BACKEND_URL: ${PUBLIC_CORE_URL}
+        NEXT_PUBLIC_ADMIN_URL: ${ADMIN_PUBLIC_URL}
         NODE_BUILD_MEMORY_MB: ${NODE_BUILD_MEMORY_MB:-768}
     restart: unless-stopped
     depends_on:
@@ -73,6 +74,7 @@ services:
       PORT: 3000
       HOSTNAME: 0.0.0.0
       NEXT_PUBLIC_BACKEND_URL: ${PUBLIC_CORE_URL}
+      NEXT_PUBLIC_ADMIN_URL: ${ADMIN_PUBLIC_URL}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://127.0.0.1:3000 >/dev/null || exit 1"]
       interval: 15s

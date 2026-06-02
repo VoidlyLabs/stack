@@ -65,7 +65,7 @@ ensure_env() {
 }
 
 warn_if_default_public_url() {
-  if grep -Eq '^(PUBLIC_CORE_URL|APP_PUBLIC_URL)=http://SERVER_IP:' .env; then
+  if grep -Eq '^(PUBLIC_CORE_URL|ADMIN_PUBLIC_URL|APP_PUBLIC_URL)=http://SERVER_IP:' .env; then
     echo "Warning: .env still contains SERVER_IP placeholders. Replace them with your VPS IP or domain."
   fi
 }
