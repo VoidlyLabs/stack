@@ -105,7 +105,7 @@ up_all() {
 }
 
 cmd="${1:-up}"
-shift || true
+if [ $# -gt 0 ]; then shift; fi
 require_docker
 ensure_env
 
