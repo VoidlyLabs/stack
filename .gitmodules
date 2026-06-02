@@ -1,0 +1,9 @@
+[submodule "core"]
+	path = core
+	url = https://github.com/VoidlyLabs/core.git
+[submodule "admin"]
+	path = admin
+	url = https://github.com/VoidlyLabs/adminpanel.git
+[submodule "app"]
+	path = app
+	url = https://github.com/VoidlyLabs/app.git
