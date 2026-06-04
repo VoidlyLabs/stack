@@ -193,6 +193,7 @@ Do not use `docker compose up --build` directly on small VPSes. `deploy.sh up` b
 | `PUBLIC_CORE_URL` | Public API URL used by admin, app, cookies, and uploaded file URLs. |
 | `APP_PUBLIC_URL` | Public storefront URL used by the storefront build/runtime. |
 | `CORE_NODE_ENV` | Backend runtime mode. Keep `development` for plain HTTP cookie testing. |
+| `MONGO_DATA_PATH` | MongoDB data directory on the Linux host. Default: `/var/lib/voidly/mongo`. |
 | `MONGO_USERNAME`, `MONGO_PASSWORD`, `MONGO_DATABASE` | MongoDB credentials and database name. |
 | `INITIAL_USER_USERNAME`, `INITIAL_USER_PASSWORD` | Initial admin account created on first startup if missing. |
 | `SERVER_JWT_SECRET`, `CLIENT_JWT_SECRET` | JWT signing secrets. |
@@ -284,16 +285,16 @@ For frontend changes or changed public URLs:
 sh deploy.sh up admin app
 ```
 
-Volumes are preserved across rebuilds and restarts.
+MongoDB data and Docker volumes are preserved across rebuilds and restarts.
 
 ## Data And Volumes
 
-| Volume | Contents |
+| Storage | Contents |
 | --- | --- |
-| `voidly_mongo_data` | MongoDB database files. |
+| `MONGO_DATA_PATH` (`/var/lib/voidly/mongo` by default) | MongoDB database files stored on the Linux host. |
 | `voidly_core_uploads` | Uploaded files served by the API at `/uploads`. |
 
-`sh deploy.sh down` removes containers but keeps volumes. To remove data, use Docker volume commands explicitly and only after taking a backup.
+`sh deploy.sh down` removes containers but keeps Docker volumes. MongoDB is stored outside Docker volumes, so `docker compose down -v`, `docker volume prune`, and `docker volume rm` do not remove the database files. To remove MongoDB data, delete `MONGO_DATA_PATH` explicitly and only after taking a backup.
 
 ## Troubleshooting
 
