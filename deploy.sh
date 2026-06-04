@@ -70,6 +70,31 @@ warn_if_default_public_url() {
   fi
 }
 
+env_value() {
+  name="$1"
+  awk -F= -v name="$name" '
+    $1 == name {
+      value = substr($0, index($0, "=") + 1)
+      gsub(/\r$/, "", value)
+      print value
+      exit
+    }
+  ' .env
+}
+
+ensure_data_dirs() {
+  mongo_data_path=$(env_value MONGO_DATA_PATH)
+  mongo_data_path=${mongo_data_path:-/var/lib/voidly/mongo}
+
+  if [ ! -d "$mongo_data_path" ]; then
+    if ! mkdir -p "$mongo_data_path"; then
+      echo "Error: Cannot create MongoDB data directory: $mongo_data_path"
+      echo "Create it manually with proper permissions or set MONGO_DATA_PATH in .env."
+      exit 1
+    fi
+  fi
+}
+
 build_one() {
   service="$1"
   echo "Building $service..."
@@ -118,6 +143,7 @@ case "$cmd" in
     ;;
   up)
     warn_if_default_public_url
+    ensure_data_dirs
     if [ "$#" -gt 0 ]; then
       build_services "$@"
       compose up -d "$@"
