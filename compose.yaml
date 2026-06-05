@@ -49,7 +49,9 @@ services:
       INITIAL_USER_PASSWORD: ${INITIAL_USER_PASSWORD}
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
     volumes:
-      - core_uploads:/app/storage/uploads
+      - type: bind
+        source: ${IMAGE_STORAGE_DATA_PATH:-/var/lib/voidly/image-storage}
+        target: /app/storage/uploads
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))\""]
       interval: 15s
@@ -111,6 +113,3 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
-
-volumes:
-  core_uploads:
