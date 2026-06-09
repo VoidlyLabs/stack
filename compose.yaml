@@ -1,6 +1,31 @@
 name: ${STACK_NAME:-voidly}
 
 services:
+  traefik:
+    image: traefik:v3.0
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+
+      - --certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+
+      - --log.level=INFO
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
   mongo:
     image: mongo:${MONGO_VERSION:-7}
     restart: unless-stopped
@@ -13,7 +38,7 @@ services:
         source: ${MONGO_DATA_PATH:-/var/lib/voidly/mongo}
         target: /data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok", "--quiet"]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok", "--quiet" ]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -29,8 +54,8 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-    ports:
-      - "${CORE_BIND}:${CORE_PORT}:3000"
+    expose:
+      - "3000"
     environment:
       NODE_ENV: ${CORE_NODE_ENV}
       PORT: 3000
@@ -51,12 +76,21 @@ services:
     volumes:
       - core_uploads:/app/storage/uploads
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))\""]
+      test: [ "CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))\"" ]
       interval: 15s
       timeout: 5s
       retries: 12
       start_period: 30s
-    command: ["npm", "run", "start:prod"]
+    command: [ "npm", "run", "start:prod" ]
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.routers.voidly-core.rule=Host(`${CORE_HOST}`)
+      - traefik.http.routers.voidly-core.entrypoints=websecure
+      - traefik.http.routers.voidly-core.tls=true
+      - traefik.http.routers.voidly-core.tls.certresolver=le
+
+      - traefik.http.services.voidly-core.loadbalancer.server.port=3000
 
   admin:
     build:
@@ -70,8 +104,8 @@ services:
     depends_on:
       core:
         condition: service_healthy
-    ports:
-      - "${ADMIN_BIND}:${ADMIN_PORT}:3000"
+    expose:
+      - "3001"
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -79,11 +113,20 @@ services:
       NEXT_PUBLIC_BACKEND_URL: ${PUBLIC_CORE_URL}
       NEXT_PUBLIC_ADMIN_URL: ${ADMIN_PUBLIC_URL}
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:3000 >/dev/null || exit 1"]
+      test: [ "CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/en/signin').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))\"" ]
       interval: 15s
       timeout: 5s
       retries: 12
       start_period: 30s
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.routers.voidly-admin.rule=Host(`${ADMIN_HOST}`)
+      - traefik.http.routers.voidly-admin.entrypoints=websecure
+      - traefik.http.routers.voidly-admin.tls=true
+      - traefik.http.routers.voidly-admin.tls.certresolver=le
+
+      - traefik.http.services.voidly-admin.loadbalancer.server.port=3000
 
   app:
     build:
@@ -97,8 +140,8 @@ services:
     depends_on:
       core:
         condition: service_healthy
-    ports:
-      - "${APP_BIND}:${APP_PORT}:3000"
+    expose:
+      - "3002"
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -106,11 +149,21 @@ services:
       NEXT_PUBLIC_BACKEND_URL: ${PUBLIC_CORE_URL}
       ORIGIN: ${APP_PUBLIC_URL}
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:3000 >/dev/null || exit 1"]
+      test: [ "CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/en').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))\"" ]
       interval: 15s
       timeout: 5s
       retries: 12
       start_period: 30s
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.routers.voidly-app.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.voidly-app.entrypoints=websecure
+      - traefik.http.routers.voidly-app.tls=true
+      - traefik.http.routers.voidly-app.tls.certresolver=le
+
+      - traefik.http.services.voidly-app.loadbalancer.server.port=3000
 
 volumes:
   core_uploads:
+  traefik_certs:
