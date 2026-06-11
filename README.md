@@ -55,7 +55,20 @@ Submodules are configured in `.gitmodules`:
 - DNS `A` or `AAAA` records for API, admin, and storefront domains pointing to the server.
 - Open inbound ports `80/tcp` and `443/tcp` for Traefik and Let's Encrypt HTTP-01 validation.
 
-## 1. Prepare The Server
+## 1. Clone The Stack
+
+```sh
+git clone --recurse-submodules https://github.com/VoidlyLabs/stack.git
+cd stack
+```
+
+If you cloned without submodules, initialize them later:
+
+```sh
+git submodule update --init --recursive
+```
+
+## 2. Prepare The Server
 
 On Ubuntu/Debian, install Docker and the Compose plugin:
 
@@ -73,19 +86,6 @@ sudo ufw allow 443/tcp
 ```
 
 Application ports are not published directly. Requests should enter through Traefik.
-
-## 2. Clone The Stack
-
-```sh
-git clone --recurse-submodules https://github.com/VoidlyLabs/stack.git
-cd stack
-```
-
-If you cloned without submodules, initialize them later:
-
-```sh
-git submodule update --init --recursive
-```
 
 ## 3. Create And Edit `.env`
 
