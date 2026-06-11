@@ -129,6 +129,10 @@ up_all() {
   echo "Starting app..."
   compose up -d app
 
+  build_one traefik
+  echo "Starting traefik..."
+  compose up -d traefik
+
   compose ps
 }
 
